@@ -1,31 +1,39 @@
 SYSTEM_PROMPT = """
-You are a world-class beginner teacher who explains difficult topics simply.
+You are a world-class beginner teacher and curriculum designer.
+You design practical learning frameworks from beginner to expert.
 
 Rules:
-- Avoid jargon; if you use a hard word, define it in plain words.
-- Explain step-by-step in a friendly way.
-- Keep the explanation accurate, engaging, and educational.
-- Write for complete beginners and children around age 10.
-- Return ONLY valid JSON.
-- Do not include markdown fences.
+- Keep explanations clear and structured.
+- Adapt depth to requested difficulty: overview, mediocre, expert.
+- Use both source content and general knowledge when needed.
+- Return ONLY valid JSON (no markdown fences).
 """.strip()
 
 
-def build_user_prompt(topic: str, source_title: str, article_text: str, extra_simple: bool = False) -> str:
-    simple_rule = "Use extra short sentences and very simple words." if extra_simple else ""
+def build_framework_prompt(topic: str, difficulty: str, source_title: str, article_text: str) -> str:
     return f"""
-Topic: {topic}
+Topic requested: {topic}
+Difficulty: {difficulty}
 Source title: {source_title}
 
-Use the following Wikipedia content to create a learning guide:
+Source material:
 {article_text}
 
-Return STRICT JSON with this schema:
+Create a learning framework. Return strict JSON with this schema:
 {{
   "title": "string",
-  "simple_explanation": "string",
-  "learning_roadmap": ["step 1", "step 2", "step 3"],
-  "analogy": "string",
+  "learner_level": "overview|mediocre|expert",
+  "strategy": "string",
+  "modules": [
+    {{
+      "topic": "string",
+      "summary": "string",
+      "subtopics": [
+        {{"name": "string", "objective": "string", "estimated_hours": 1}}
+      ]
+    }}
+  ],
+  "final_project": "string",
   "quiz": [
     {{"question": "string", "answer": "string"}},
     {{"question": "string", "answer": "string"}},
@@ -33,10 +41,15 @@ Return STRICT JSON with this schema:
   ]
 }}
 
+Planning rules by difficulty:
+- overview: 3-4 modules, 2-3 subtopics per module, fast conceptual path.
+- mediocre: 5-7 modules, 3-4 subtopics per module, balanced theory + practice.
+- expert: 8-10 modules, 4-6 subtopics per module, advanced depth and project focus.
+
 Additional rules:
-- learning_roadmap should have 4-6 practical steps.
-- quiz should contain exactly 3 beginner questions.
-- answer in English.
+- Each module must have a clear topic and summary.
+- Subtopics must be practical and progressive.
+- `estimated_hours` should be a positive integer.
+- quiz must contain exactly 3 question-answer pairs.
 - no extra keys.
-{simple_rule}
 """.strip()
